@@ -2,99 +2,160 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ma liste de courses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mes courses</title>
+
+  <!-- Les deux polices : une pour les titres, une pour le texte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 
   <style>
-    /* ---------- Couleurs de l'appli ---------- */
+    /*
+      Mise en page : pensée pour le pouce, dans un magasin.
+      En haut, ce qu'il reste à acheter (grand chiffre + jauge).
+      Au milieu, la liste. En bas de l'écran, la barre pour ajouter.
+    */
+
+    /* ---------- Couleurs et polices ---------- */
     :root {
-      --fond: #f3f6ef;          /* vert très pâle */
-      --carte: #ffffff;
-      --vert: #7fa98a;          /* vert sauge */
-      --vert-fonce: #5f8b6b;
-      --texte: #2f3a33;
-      --texte-doux: #8a978e;
-      --bordure: #e2e8df;
-      --rouge-doux: #e08a8a;
+      --fond: #eef2e8;          /* vert très pâle */
+      --surface: #ffffff;       /* fond de la liste */
+      --encre: #1f2b23;         /* texte principal, vert très foncé */
+      --encre-douce: #6d7a70;   /* texte secondaire */
+      --trait: #dde4d6;         /* séparateurs */
+      --petit-pois: #4f8a5c;    /* couleur principale */
+      --petit-pois-fonce: #3f744b;
+      --sur-petit-pois: #ffffff;
+      --beurre: #f2d675;        /* jauge de progression */
+      --framboise: #c4506a;     /* supprimer */
+      --framboise-pale: #f8e6ea;
+
+      --police-titre: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+      --police-texte: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Mode sombre automatique, si le téléphone est réglé en sombre */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fond: #161c18; --surface: #1f2722; --encre: #e7ede6; --encre-douce: #98a59b;
+        --trait: #2f3a33; --petit-pois: #86c194; --petit-pois-fonce: #a2d4ad; --sur-petit-pois: #10200f;
+        --beurre: #e2c55e; --framboise: #ec8aa0; --framboise-pale: #3a2229;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --fond: #161c18; --surface: #1f2722; --encre: #e7ede6; --encre-douce: #98a59b;
+      --trait: #2f3a33; --petit-pois: #86c194; --petit-pois-fonce: #a2d4ad; --sur-petit-pois: #10200f;
+      --beurre: #e2c55e; --framboise: #ec8aa0; --framboise-pale: #3a2229;
+      color-scheme: dark;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    body {
-      margin: 0;
-      padding: 24px 16px;
-      background: var(--fond);
-      color: var(--texte);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      font-size: 17px;
+    [hidden] {
+      display: none !important;
     }
 
-    /* La carte blanche au centre */
-    .carte {
-      max-width: 480px;
+    body {
+      margin: 0;
+      background: var(--fond);
+      color: var(--encre);
+      font-family: var(--police-texte);
+      font-size: 17px;
+      line-height: 1.4;
+    }
+
+    /* La colonne de contenu, avec de la place en bas pour la barre d'ajout */
+    .page {
+      max-width: 520px;
       margin: 0 auto;
-      background: var(--carte);
-      border-radius: 20px;
-      padding: 24px 20px;
-      box-shadow: 0 6px 24px rgba(47, 58, 51, 0.08);
+      padding-top: max(28px, env(safe-area-inset-top, 0px));
+      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+      padding-left: max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ---------- En-tête : ce qu'il reste à acheter ---------- */
+    .entete {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0 4px;
     }
 
     h1 {
-      margin: 0 0 20px;
-      font-size: 26px;
-      text-align: center;
-    }
-
-    /* ---------- Zone d'ajout ---------- */
-    form {
-      display: flex;
-      gap: 8px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      min-width: 0;
-      padding: 12px 14px;
-      font-size: 17px;
-      border: 2px solid var(--bordure);
-      border-radius: 12px;
-      outline: none;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--vert);
-    }
-
-    .bouton-ajouter {
-      padding: 12px 18px;
-      font-size: 17px;
+      margin: 0;
+      font-family: var(--police-titre);
       font-weight: 600;
-      color: white;
-      background: var(--vert);
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
+      font-size: 18px;
+      color: var(--encre-douce);
     }
 
-    .bouton-ajouter:hover {
-      background: var(--vert-fonce);
+    .reste {
+      margin: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      font-family: var(--police-titre);
     }
 
-    /* ---------- La liste ---------- */
+    /* Le grand chiffre : l'élément marquant de la page */
+    .chiffre {
+      font-size: 72px;
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .reste-texte {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .jauge {
+      height: 10px;
+      background: var(--surface);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .jauge-remplie {
+      height: 100%;
+      width: 0;
+      background: var(--beurre);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* ---------- Les listes ---------- */
+    .feuille {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 4px 8px;
+    }
+
     ul {
       list-style: none;
-      margin: 20px 0 0;
+      margin: 0;
       padding: 0;
     }
 
     li {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 4px;
-      border-bottom: 1px solid var(--bordure);
+      gap: 4px;
+      border-bottom: 1px solid var(--trait);
+    }
+
+    li:last-child {
+      border-bottom: none;
     }
 
     /* La case + le nom : toucher le nom coche aussi la case */
@@ -103,92 +164,267 @@
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 4px 0;
+      gap: 14px;
+      padding: 14px 8px;
       cursor: pointer;
     }
 
-    li:last-child {
-      border-bottom: none;
-    }
-
-    /* Grande case à cocher, facile à toucher */
-    li input[type="checkbox"] {
-      width: 24px;
-      height: 24px;
-      accent-color: var(--vert);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    li .nom {
+    .nom {
       flex: 1;
-      word-break: break-word;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
-    /* Article acheté : barré et grisé */
-    li.achete .nom {
-      text-decoration: line-through;
-      color: var(--texte-doux);
+    /* Case à cocher ronde, dessinée en CSS */
+    li input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      margin: 0;
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border: 2px solid var(--petit-pois);
+      border-radius: 50%;
+      display: grid;
+      place-content: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    li input[type="checkbox"]::after {
+      content: "";
+      width: 7px;
+      height: 13px;
+      margin-top: -3px;
+      border: solid var(--sur-petit-pois);
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg) scale(0);
+      transition: transform 0.15s ease;
+    }
+
+    li input[type="checkbox"]:checked {
+      background: var(--petit-pois);
+    }
+
+    li input[type="checkbox"]:checked::after {
+      transform: rotate(45deg) scale(1);
+    }
+
+    li input[type="checkbox"]:focus-visible,
+    button:focus-visible,
+    input[type="text"]:focus-visible {
+      outline: 3px solid var(--beurre);
+      outline-offset: 2px;
     }
 
     .bouton-supprimer {
       width: 44px;
       height: 44px;
-      font-size: 18px;
-      color: var(--texte-doux);
+      flex-shrink: 0;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--encre-douce);
       background: none;
       border: none;
       border-radius: 50%;
       cursor: pointer;
-      flex-shrink: 0;
     }
 
     .bouton-supprimer:hover {
-      color: var(--rouge-doux);
-      background: #fbeeee;
+      color: var(--framboise);
+      background: var(--framboise-pale);
     }
 
-    /* Messages en bas */
-    .vide,
-    .compteur {
-      margin: 20px 0 0;
+    /* Un article qui vient d'être ajouté s'allume brièvement */
+    li.nouveau {
+      animation: apparition 0.9s ease;
+    }
+
+    @keyframes apparition {
+      from { background: color-mix(in srgb, var(--beurre) 45%, transparent); }
+      to { background: transparent; }
+    }
+
+    /* ---------- Le panier (articles cochés) ---------- */
+    .panier {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      padding: 0 4px;
+      font-family: var(--police-titre);
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--encre-douce);
+    }
+
+    .panier .feuille {
+      background: transparent;
+      border: 1px dashed var(--trait);
+    }
+
+    .panier .nom {
+      color: var(--encre-douce);
+      text-decoration: line-through;
+      text-decoration-color: var(--petit-pois);
+      text-decoration-thickness: 2px;
+    }
+
+    /* Messages quand la liste est vide ou tout est acheté */
+    .message {
+      margin: 0;
+      padding: 28px 16px;
       text-align: center;
-      color: var(--texte-doux);
-      font-size: 15px;
+      color: var(--encre-douce);
+    }
+
+    .message strong {
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--police-titre);
+      font-size: 20px;
+      color: var(--encre);
+    }
+
+    /* ---------- Barre d'ajout, collée en bas de l'écran ---------- */
+    .barre-ajout {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding-top: 12px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      padding-left: max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+      background: color-mix(in srgb, var(--fond) 88%, transparent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--trait);
+    }
+
+    .barre-ajout form {
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 14px 18px;
+      font: inherit;
+      color: var(--encre);
+      background: var(--surface);
+      border: 2px solid var(--trait);
+      border-radius: 99px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--petit-pois);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--encre-douce);
+    }
+
+    .bouton-ajouter {
+      padding: 0 22px;
+      min-height: 52px;
+      font: inherit;
+      font-weight: 600;
+      color: var(--sur-petit-pois);
+      background: var(--petit-pois);
+      border: none;
+      border-radius: 99px;
+      cursor: pointer;
+    }
+
+    .bouton-ajouter:hover {
+      background: var(--petit-pois-fonce);
+    }
+
+    /* Pas d'animation pour ceux qui l'ont désactivée sur leur appareil */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
 
 <body>
-  <main class="carte">
-    <h1>🛒 Ma liste de courses</h1>
+  <main class="page">
 
-    <!-- Zone pour ajouter un article -->
+    <!-- En haut : combien d'articles il reste à acheter -->
+    <header class="entete">
+      <h1>Mes courses</h1>
+      <p class="reste">
+        <span class="chiffre" id="nb-reste">0</span>
+        <span class="reste-texte" id="texte-reste">à acheter</span>
+      </p>
+      <div class="jauge" role="progressbar" aria-label="Articles dans le panier" aria-valuemin="0" aria-valuemax="100" id="jauge">
+        <div class="jauge-remplie" id="jauge-remplie"></div>
+      </div>
+    </header>
+
+    <!-- Les articles à acheter -->
+    <section class="feuille">
+      <ul id="liste"></ul>
+      <p class="message" id="message-vide">
+        <strong>Votre liste est vide</strong>
+        Ajoutez un premier article avec la barre en bas de l'écran.
+      </p>
+      <p class="message" id="message-fini" hidden>
+        <strong>Tout est dans le panier 🎉</strong>
+        Bonnes courses ! Supprimez les articles pour repartir de zéro.
+      </p>
+    </section>
+
+    <!-- Les articles déjà cochés -->
+    <section class="panier" id="zone-panier" hidden>
+      <h2 id="titre-panier">Dans le panier</h2>
+      <div class="feuille">
+        <ul id="panier"></ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- La barre pour ajouter un article -->
+  <div class="barre-ajout">
     <form id="formulaire">
-      <input type="text" id="champ" placeholder="Ajouter un article…" aria-label="Nouvel article" autocomplete="off">
+      <input type="text" id="champ" placeholder="Ajouter un article…" aria-label="Nouvel article" autocomplete="off" enterkeyhint="done">
       <button type="submit" class="bouton-ajouter">Ajouter</button>
     </form>
-
-    <!-- La liste des articles (remplie par le JavaScript) -->
-    <ul id="liste"></ul>
-
-    <p class="vide" id="message-vide">Votre liste est vide 🌱</p>
-    <p class="compteur" id="compteur"></p>
-  </main>
+  </div>
 
   <script>
     // On récupère les éléments de la page dont on a besoin
     const formulaire = document.getElementById("formulaire");
     const champ = document.getElementById("champ");
     const liste = document.getElementById("liste");
+    const panier = document.getElementById("panier");
+    const zonePanier = document.getElementById("zone-panier");
+    const titrePanier = document.getElementById("titre-panier");
     const messageVide = document.getElementById("message-vide");
-    const compteur = document.getElementById("compteur");
+    const messageFini = document.getElementById("message-fini");
+    const nbReste = document.getElementById("nb-reste");
+    const texteReste = document.getElementById("texte-reste");
+    const jauge = document.getElementById("jauge");
+    const jaugeRemplie = document.getElementById("jauge-remplie");
 
     // Les articles sont gardés dans un tableau, par exemple :
     // [ { nom: "Pain", achete: false }, { nom: "Lait", achete: true } ]
     // On recharge ceux sauvegardés dans le navigateur (s'il y en a).
     let articles = chargerArticles();
+
+    // Le dernier article ajouté (pour le faire briller un instant)
+    let dernierAjoute = null;
 
     // Quand on clique sur "Ajouter" (ou qu'on appuie sur Entrée)
     formulaire.addEventListener("submit", function (evenement) {
@@ -199,67 +435,88 @@
         return; // on n'ajoute pas un article vide
       }
 
-      articles.push({ nom: nom, achete: false });
+      dernierAjoute = { nom: nom, achete: false };
+      articles.push(dernierAjoute);
       champ.value = "";
       champ.focus();
       mettreAJour();
     });
 
-    // Redessine toute la liste à l'écran et sauvegarde
-    function mettreAJour() {
-      liste.innerHTML = "";
+    // Fabrique la ligne d'un article (case, nom, bouton ✕)
+    function creerLigne(article, index) {
+      const ligne = document.createElement("li");
+      if (article === dernierAjoute) {
+        ligne.classList.add("nouveau");
+      }
 
-      articles.forEach(function (article, index) {
-        const ligne = document.createElement("li");
-        if (article.achete) {
-          ligne.classList.add("achete");
-        }
-
-        // La case à cocher
-        const caseACocher = document.createElement("input");
-        caseACocher.type = "checkbox";
-        caseACocher.checked = article.achete;
-        caseACocher.setAttribute("aria-label", "Acheté : " + article.nom);
-        caseACocher.addEventListener("change", function () {
-          article.achete = caseACocher.checked;
-          mettreAJour();
-        });
-
-        // Le nom de l'article
-        const nom = document.createElement("span");
-        nom.className = "nom";
-        nom.textContent = article.nom;
-
-        // Le bouton pour supprimer
-        const boutonSupprimer = document.createElement("button");
-        boutonSupprimer.className = "bouton-supprimer";
-        boutonSupprimer.textContent = "✕";
-        boutonSupprimer.setAttribute("aria-label", "Supprimer " + article.nom);
-        boutonSupprimer.addEventListener("click", function () {
-          articles.splice(index, 1); // retire l'article du tableau
-          mettreAJour();
-        });
-
-        // On met la case et le nom dans un <label> :
-        // ainsi, toucher le nom coche aussi la case
-        const etiquette = document.createElement("label");
-        etiquette.append(caseACocher, nom);
-
-        ligne.append(etiquette, boutonSupprimer);
-        liste.appendChild(ligne);
+      // La case à cocher
+      const caseACocher = document.createElement("input");
+      caseACocher.type = "checkbox";
+      caseACocher.checked = article.achete;
+      caseACocher.setAttribute("aria-label", "Acheté : " + article.nom);
+      caseACocher.addEventListener("change", function () {
+        article.achete = caseACocher.checked;
+        dernierAjoute = null;
+        mettreAJour();
       });
 
-      // Message "liste vide" et compteur
+      // Le nom de l'article
+      const nom = document.createElement("span");
+      nom.className = "nom";
+      nom.textContent = article.nom;
+
+      // On met la case et le nom dans un <label> :
+      // ainsi, toucher le nom coche aussi la case
+      const etiquette = document.createElement("label");
+      etiquette.append(caseACocher, nom);
+
+      // Le bouton pour supprimer
+      const boutonSupprimer = document.createElement("button");
+      boutonSupprimer.type = "button";
+      boutonSupprimer.className = "bouton-supprimer";
+      boutonSupprimer.textContent = "✕";
+      boutonSupprimer.setAttribute("aria-label", "Supprimer " + article.nom);
+      boutonSupprimer.addEventListener("click", function () {
+        articles.splice(index, 1); // retire l'article du tableau
+        dernierAjoute = null;
+        mettreAJour();
+      });
+
+      ligne.append(etiquette, boutonSupprimer);
+      return ligne;
+    }
+
+    // Redessine toute la page et sauvegarde
+    function mettreAJour() {
+      liste.innerHTML = "";
+      panier.innerHTML = "";
+
+      // Les articles à acheter vont en haut, ceux cochés dans le panier
+      articles.forEach(function (article, index) {
+        const ligne = creerLigne(article, index);
+        if (article.achete) {
+          panier.appendChild(ligne);
+        } else {
+          liste.appendChild(ligne);
+        }
+      });
+
+      const total = articles.length;
       const restants = articles.filter(function (a) { return !a.achete; }).length;
-      messageVide.hidden = articles.length > 0;
-      compteur.hidden = articles.length === 0;
-      if (restants === 0) {
-        compteur.textContent = "Tout est acheté 🎉";
-      } else if (restants === 1) {
-        compteur.textContent = "1 article restant";
-      } else {
-        compteur.textContent = restants + " articles restants";
-      }
+      const dansLePanier = total - restants;
+
+      // Le grand chiffre et la jauge
+      nbReste.textContent = restants;
+      texteReste.textContent = "à acheter";
+      const pourcentage = total === 0 ? 0 : Math.round((dansLePanier / total) * 100);
+      jaugeRemplie.style.width = pourcentage + "%";
+      jauge.setAttribute("aria-valuenow", pourcentage);
+
+      // Les messages
+      messageVide.hidden = total > 0;
+      messageFini.hidden = !(total > 0 && restants === 0);
+      zonePanier.hidden = dansLePanier === 0;
+      titrePanier.textContent = "Dans le panier (" + dansLePanier + ")";
 
       sauvegarderArticles();
     }
