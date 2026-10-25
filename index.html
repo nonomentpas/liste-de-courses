@@ -92,9 +92,20 @@
     li {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 4px;
+      gap: 8px;
+      padding: 8px 4px;
       border-bottom: 1px solid var(--bordure);
+    }
+
+    /* La case + le nom : toucher le nom coche aussi la case */
+    li label {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 0;
+      cursor: pointer;
     }
 
     li:last-child {
@@ -122,8 +133,8 @@
     }
 
     .bouton-supprimer {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       font-size: 18px;
       color: var(--texte-doux);
       background: none;
@@ -155,7 +166,7 @@
 
     <!-- Zone pour ajouter un article -->
     <form id="formulaire">
-      <input type="text" id="champ" placeholder="Ajouter un article…" autocomplete="off">
+      <input type="text" id="champ" placeholder="Ajouter un article…" aria-label="Nouvel article" autocomplete="off">
       <button type="submit" class="bouton-ajouter">Ajouter</button>
     </form>
 
@@ -229,7 +240,12 @@
           mettreAJour();
         });
 
-        ligne.append(caseACocher, nom, boutonSupprimer);
+        // On met la case et le nom dans un <label> :
+        // ainsi, toucher le nom coche aussi la case
+        const etiquette = document.createElement("label");
+        etiquette.append(caseACocher, nom);
+
+        ligne.append(etiquette, boutonSupprimer);
         liste.appendChild(ligne);
       });
 
@@ -237,7 +253,13 @@
       const restants = articles.filter(function (a) { return !a.achete; }).length;
       messageVide.hidden = articles.length > 0;
       compteur.hidden = articles.length === 0;
-      compteur.textContent = restants + (restants > 1 ? " articles restants" : " article restant");
+      if (restants === 0) {
+        compteur.textContent = "Tout est acheté 🎉";
+      } else if (restants === 1) {
+        compteur.textContent = "1 article restant";
+      } else {
+        compteur.textContent = restants + " articles restants";
+      }
 
       sauvegarderArticles();
     }
@@ -254,7 +276,14 @@
     // Recharge la liste sauvegardée
     function chargerArticles() {
       try {
-        return JSON.parse(localStorage.getItem("liste-de-courses")) || [];
+        const donnees = JSON.parse(localStorage.getItem("liste-de-courses"));
+        if (!Array.isArray(donnees)) {
+          return []; // rien de sauvegardé, ou sauvegarde abîmée
+        }
+        // On ne garde que les articles valides (avec un nom)
+        return donnees
+          .filter(function (a) { return a && typeof a.nom === "string" && a.nom.trim() !== ""; })
+          .map(function (a) { return { nom: a.nom, achete: a.achete === true }; });
       } catch (e) {
         return [];
       }
