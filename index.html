@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ma liste de courses</title>
+
+  <style>
+    /* ---------- Couleurs de l'appli ---------- */
+    :root {
+      --fond: #f3f6ef;          /* vert très pâle */
+      --carte: #ffffff;
+      --vert: #7fa98a;          /* vert sauge */
+      --vert-fonce: #5f8b6b;
+      --texte: #2f3a33;
+      --texte-doux: #8a978e;
+      --bordure: #e2e8df;
+      --rouge-doux: #e08a8a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      background: var(--fond);
+      color: var(--texte);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 17px;
+    }
+
+    /* La carte blanche au centre */
+    .carte {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--carte);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 6px 24px rgba(47, 58, 51, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 26px;
+      text-align: center;
+    }
+
+    /* ---------- Zone d'ajout ---------- */
+    form {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      font-size: 17px;
+      border: 2px solid var(--bordure);
+      border-radius: 12px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--vert);
+    }
+
+    .bouton-ajouter {
+      padding: 12px 18px;
+      font-size: 17px;
+      font-weight: 600;
+      color: white;
+      background: var(--vert);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .bouton-ajouter:hover {
+      background: var(--vert-fonce);
+    }
+
+    /* ---------- La liste ---------- */
+    ul {
+      list-style: none;
+      margin: 20px 0 0;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--bordure);
+    }
+
+    /* La case + le nom : toucher le nom coche aussi la case */
+    li label {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    /* Grande case à cocher, facile à toucher */
+    li input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      accent-color: var(--vert);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    li .nom {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    /* Article acheté : barré et grisé */
+    li.achete .nom {
+      text-decoration: line-through;
+      color: var(--texte-doux);
+    }
+
+    .bouton-supprimer {
+      width: 44px;
+      height: 44px;
+      font-size: 18px;
+      color: var(--texte-doux);
+      background: none;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .bouton-supprimer:hover {
+      color: var(--rouge-doux);
+      background: #fbeeee;
+    }
+
+    /* Messages en bas */
+    .vide,
+    .compteur {
+      margin: 20px 0 0;
+      text-align: center;
+      color: var(--texte-doux);
+      font-size: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="carte">
+    <h1>🛒 Ma liste de courses</h1>
+
+    <!-- Zone pour ajouter un article -->
+    <form id="formulaire">
+      <input type="text" id="champ" placeholder="Ajouter un article…" aria-label="Nouvel article" autocomplete="off">
+      <button type="submit" class="bouton-ajouter">Ajouter</button>
+    </form>
+
+    <!-- La liste des articles (remplie par le JavaScript) -->
+    <ul id="liste"></ul>
+
+    <p class="vide" id="message-vide">Votre liste est vide 🌱</p>
+    <p class="compteur" id="compteur"></p>
+  </main>
+
+  <script>
+    // On récupère les éléments de la page dont on a besoin
+    const formulaire = document.getElementById("formulaire");
+    const champ = document.getElementById("champ");
+    const liste = document.getElementById("liste");
+    const messageVide = document.getElementById("message-vide");
+    const compteur = document.getElementById("compteur");
+
+    // Les articles sont gardés dans un tableau, par exemple :
+    // [ { nom: "Pain", achete: false }, { nom: "Lait", achete: true } ]
+    // On recharge ceux sauvegardés dans le navigateur (s'il y en a).
+    let articles = chargerArticles();
+
+    // Quand on clique sur "Ajouter" (ou qu'on appuie sur Entrée)
+    formulaire.addEventListener("submit", function (evenement) {
+      evenement.preventDefault(); // empêche la page de se recharger
+
+      const nom = champ.value.trim(); // enlève les espaces autour
+      if (nom === "") {
+        return; // on n'ajoute pas un article vide
+      }
+
+      articles.push({ nom: nom, achete: false });
+      champ.value = "";
+      champ.focus();
+      mettreAJour();
+    });
+
+    // Redessine toute la liste à l'écran et sauvegarde
+    function mettreAJour() {
+      liste.innerHTML = "";
+
+      articles.forEach(function (article, index) {
+        const ligne = document.createElement("li");
+        if (article.achete) {
+          ligne.classList.add("achete");
+        }
+
+        // La case à cocher
+        const caseACocher = document.createElement("input");
+        caseACocher.type = "checkbox";
+        caseACocher.checked = article.achete;
+        caseACocher.setAttribute("aria-label", "Acheté : " + article.nom);
+        caseACocher.addEventListener("change", function () {
+          article.achete = caseACocher.checked;
+          mettreAJour();
+        });
+
+        // Le nom de l'article
+        const nom = document.createElement("span");
+        nom.className = "nom";
+        nom.textContent = article.nom;
+
+        // Le bouton pour supprimer
+        const boutonSupprimer = document.createElement("button");
+        boutonSupprimer.className = "bouton-supprimer";
+        boutonSupprimer.textContent = "✕";
+        boutonSupprimer.setAttribute("aria-label", "Supprimer " + article.nom);
+        boutonSupprimer.addEventListener("click", function () {
+          articles.splice(index, 1); // retire l'article du tableau
+          mettreAJour();
+        });
+
+        // On met la case et le nom dans un <label> :
+        // ainsi, toucher le nom coche aussi la case
+        const etiquette = document.createElement("label");
+        etiquette.append(caseACocher, nom);
+
+        ligne.append(etiquette, boutonSupprimer);
+        liste.appendChild(ligne);
+      });
+
+      // Message "liste vide" et compteur
+      const restants = articles.filter(function (a) { return !a.achete; }).length;
+      messageVide.hidden = articles.length > 0;
+      compteur.hidden = articles.length === 0;
+      if (restants === 0) {
+        compteur.textContent = "Tout est acheté 🎉";
+      } else if (restants === 1) {
+        compteur.textContent = "1 article restant";
+      } else {
+        compteur.textContent = restants + " articles restants";
+      }
+
+      sauvegarderArticles();
+    }
+
+    // Sauvegarde la liste dans le navigateur
+    function sauvegarderArticles() {
+      try {
+        localStorage.setItem("liste-de-courses", JSON.stringify(articles));
+      } catch (e) {
+        // Si le navigateur refuse (mode privé...), l'appli marche quand même
+      }
+    }
+
+    // Recharge la liste sauvegardée
+    function chargerArticles() {
+      try {
+        const donnees = JSON.parse(localStorage.getItem("liste-de-courses"));
+        if (!Array.isArray(donnees)) {
+          return []; // rien de sauvegardé, ou sauvegarde abîmée
+        }
+        // On ne garde que les articles valides (avec un nom)
+        return donnees
+          .filter(function (a) { return a && typeof a.nom === "string" && a.nom.trim() !== ""; })
+          .map(function (a) { return { nom: a.nom, achete: a.achete === true }; });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Premier affichage au chargement de la page
+    mettreAJour();
+  </script>
+</body>
+</html>
